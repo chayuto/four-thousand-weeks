@@ -4,7 +4,7 @@
 
 A **Life Calendar** (Memento Mori) visualization that displays your entire lifespan as a grid of weeks. Each cell represents one week of the approximately 4,000 weeks in an 80-year life.
 
-![Life Calendar Demo](https://via.placeholder.com/800x400?text=Life+Calendar+Preview)
+**Live Demo:** [four-thousand-weeks.chayuto.com](https://four-thousand-weeks.chayuto.com/)
 
 ## Concept
 

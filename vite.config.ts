@@ -5,8 +5,6 @@ import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Base path for GitHub Pages (repo name)
-  base: process.env.GITHUB_ACTIONS ? '/four-thousand-weeks/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
