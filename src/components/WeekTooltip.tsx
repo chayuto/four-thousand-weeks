@@ -60,7 +60,7 @@ export const WeekTooltip = () => {
                 transform: 'translateY(-100%)',
             }}
         >
-            <div className="bg-[var(--color-surface-elevated)] border border-[var(--color-border)] rounded-lg shadow-xl p-3 min-w-[200px]">
+            <div className="bg-[var(--color-surface-elevated)] border border-[var(--color-border)] rounded-lg shadow-xl p-3 min-w-[200px] max-w-[280px]">
                 {/* Week header */}
                 <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">
@@ -96,7 +96,7 @@ export const WeekTooltip = () => {
                         {activeEras.map((era) => era && (
                             <div key={era.id} className="flex items-center gap-2 text-sm">
                                 <div
-                                    className="w-3 h-3 rounded-sm"
+                                    className="w-3 h-3 rounded-sm flex-shrink-0"
                                     style={{ backgroundColor: era.color }}
                                 />
                                 <span>{era.title}</span>
@@ -110,9 +110,33 @@ export const WeekTooltip = () => {
                     <div className="mt-2 pt-2 border-t border-[var(--color-border)]">
                         <div className="text-xs text-[var(--color-text-muted)] mb-1">Events</div>
                         {weekEvents.map((event) => event && (
-                            <div key={event.id} className="flex items-center gap-2 text-sm">
-                                <span>•</span>
-                                <span>{event.title}</span>
+                            <div key={event.id} className="mb-2 last:mb-0">
+                                <div className="flex items-center gap-2 text-sm">
+                                    {event.color ? (
+                                        <div
+                                            className="w-3 h-3 rounded-full flex-shrink-0"
+                                            style={{ backgroundColor: event.color }}
+                                        />
+                                    ) : (
+                                        <span className="text-[var(--color-text-muted)]">•</span>
+                                    )}
+                                    <span className="font-medium">{event.title}</span>
+                                    {event.endDate && (
+                                        <span className="text-xs px-1 py-0.5 rounded bg-[var(--color-surface)] text-[var(--color-text-muted)]">
+                                            Period
+                                        </span>
+                                    )}
+                                </div>
+                                {event.endDate && (
+                                    <div className="text-xs text-[var(--color-text-muted)] ml-5 mt-0.5">
+                                        {format(event.date, 'MMM d, yyyy')} – {format(event.endDate, 'MMM d, yyyy')}
+                                    </div>
+                                )}
+                                {event.description && (
+                                    <p className="text-xs text-[var(--color-text-secondary)] ml-5 mt-0.5 line-clamp-2">
+                                        {event.description}
+                                    </p>
+                                )}
                             </div>
                         ))}
                     </div>

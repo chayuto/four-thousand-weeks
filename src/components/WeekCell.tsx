@@ -9,12 +9,13 @@
  */
 
 import { memo, type CSSProperties } from 'react';
-import type { WeekData, LifeEra } from '@/types';
+import type { WeekData, LifeEra, LifeEvent } from '@/types';
 
 interface WeekCellProps {
     weekIndex: number;
     weekData: WeekData | null;
     eras: Map<string, LifeEra>;
+    events: Map<string, LifeEvent>;
 }
 
 /**
@@ -39,7 +40,7 @@ const generateEraGradient = (eraColors: string[]): string => {
 /**
  * Determines the base class for the week cell based on its state.
  */
-const getCellClassName = (weekData: WeekData | null): string => {
+const getCellClassName = (weekData: WeekData | null, hasPeriodEvent: boolean): string => {
     const classes = ['week-cell'];
 
     if (!weekData) {
@@ -57,12 +58,15 @@ const getCellClassName = (weekData: WeekData | null): string => {
 
     if (weekData.events.length > 0) {
         classes.push('has-event');
+        if (hasPeriodEvent) {
+            classes.push('has-period-event');
+        }
     }
 
     return classes.join(' ');
 };
 
-const WeekCellComponent = ({ weekIndex, weekData, eras }: WeekCellProps) => {
+const WeekCellComponent = ({ weekIndex, weekData, eras, events }: WeekCellProps) => {
     // Get era colors for this week
     const eraColors: string[] = [];
     if (weekData?.activeEras) {
@@ -74,16 +78,35 @@ const WeekCellComponent = ({ weekIndex, weekData, eras }: WeekCellProps) => {
         }
     }
 
-    // Build inline styles for era colors
+    // Check for period events and get event color
+    let hasPeriodEvent = false;
+    let eventColor: string | undefined;
+    if (weekData?.events) {
+        for (const eventId of weekData.events) {
+            const event = events.get(eventId);
+            if (event) {
+                if (event.endDate) {
+                    hasPeriodEvent = true;
+                }
+                if (event.color && !eventColor) {
+                    eventColor = event.color;
+                }
+            }
+        }
+    }
+
+    // Build inline styles for era colors or event color
     const style: CSSProperties = {};
     if (eraColors.length > 0) {
         const background = generateEraGradient(eraColors);
         style.background = background;
+    } else if (eventColor) {
+        style.backgroundColor = eventColor;
     }
 
     return (
         <div
-            className={getCellClassName(weekData)}
+            className={getCellClassName(weekData, hasPeriodEvent)}
             data-week-index={weekIndex}
             data-year={weekData?.year}
             data-week-of-year={weekData?.weekOfYear}

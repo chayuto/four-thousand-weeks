@@ -34,12 +34,15 @@ export const LifeEraSchema = z.object({
 
 /**
  * Life Event schema
+ * Supports both point-in-time and period events
  */
 export const LifeEventSchema = z.object({
     id: z.string().uuid(),
     date: z.coerce.date(),
+    endDate: z.coerce.date().optional(),
     title: z.string().min(1, 'Title is required'),
-    icon: z.string().optional(),
+    description: z.string().optional(),
+    color: HexColorSchema.optional(),
 });
 
 /**
@@ -53,6 +56,15 @@ export const UserConfigSchema = z.object({
 });
 
 /**
+ * Export data schema - used for import/export functionality
+ */
+export const ExportDataSchema = z.object({
+    version: z.literal(1),
+    exportedAt: z.coerce.date(),
+    data: UserConfigSchema,
+});
+
+/**
  * Type inference from Zod schemas
  */
 export type LifeEraInput = z.input<typeof LifeEraSchema>;
@@ -61,6 +73,8 @@ export type LifeEventInput = z.input<typeof LifeEventSchema>;
 export type LifeEventOutput = z.output<typeof LifeEventSchema>;
 export type UserConfigInput = z.input<typeof UserConfigSchema>;
 export type UserConfigOutput = z.output<typeof UserConfigSchema>;
+export type ExportDataInput = z.input<typeof ExportDataSchema>;
+export type ExportDataOutput = z.output<typeof ExportDataSchema>;
 
 /**
  * Parse and validate user config data
@@ -75,4 +89,18 @@ export const parseUserConfig = (data: unknown): UserConfigOutput => {
  */
 export const safeParseUserConfig = (data: unknown) => {
     return UserConfigSchema.safeParse(data);
+};
+
+/**
+ * Parse and validate export data
+ */
+export const parseExportData = (data: unknown): ExportDataOutput => {
+    return ExportDataSchema.parse(data);
+};
+
+/**
+ * Safe parse for export data
+ */
+export const safeParseExportData = (data: unknown) => {
+    return ExportDataSchema.safeParse(data);
 };

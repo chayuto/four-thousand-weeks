@@ -22,13 +22,17 @@ export interface LifeEra {
 }
 
 /**
- * Represents a single point-in-time event
+ * Represents a life event - can be point-in-time or a period (range)
+ * - Point-in-time: only `date` is set (e.g., "Graduated University")
+ * - Period: both `date` and `endDate` are set (e.g., "Summer Internship")
  */
 export interface LifeEvent {
     id: string;
     date: Date;
+    endDate?: Date; // Optional: makes this a period event
     title: string;
-    icon?: string;
+    description?: string;
+    color?: string; // Optional hex color (defaults to accent)
 }
 
 /**

@@ -12,6 +12,7 @@ import { persist, type StateStorage, createJSONStorage } from 'zustand/middlewar
 import type { LifeEra, LifeEvent, WeekData } from '@/types';
 import { WEEKS_PER_YEAR, DEFAULT_LIFE_EXPECTANCY } from '@/types';
 import { getWeekRange, getWeekIndex, weekIndexToPosition, isWeekPast, isCurrentWeek, isEraActiveInWeek } from '@/lib/dateUtils';
+import { exportCalendarData, importCalendarData, downloadFile } from '@/lib/importExport';
 
 interface LifeCalendarState {
     // User configuration
@@ -38,6 +39,11 @@ interface LifeCalendarState {
     removeEvent: (id: string) => void;
     setHoveredWeek: (index: number | null) => void;
     setSelectedWeek: (index: number | null) => void;
+
+    // Import/Export actions
+    exportData: () => void;
+    importData: (json: string) => { success: boolean; error?: string };
+    clearAllData: () => void;
 
     // Computed getters
     getWeekData: (weekIndex: number) => WeekData | null;
@@ -139,6 +145,39 @@ export const useLifeCalendarStore = create<LifeCalendarState>()(
             setHoveredWeek: (index) => set({ hoveredWeekIndex: index }),
             setSelectedWeek: (index) => set({ selectedWeekIndex: index }),
 
+            // Import/Export actions
+            exportData: () => {
+                const { birthDate, lifeExpectancy, eras, events } = get();
+                const json = exportCalendarData({ birthDate, lifeExpectancy, eras, events });
+                const filename = `life-calendar-${new Date().toISOString().split('T')[0]}.json`;
+                downloadFile(json, filename);
+            },
+
+            importData: (json) => {
+                const result = importCalendarData(json);
+                if (result.success && result.data) {
+                    set({
+                        birthDate: result.data.birthDate,
+                        lifeExpectancy: result.data.lifeExpectancy,
+                        eras: result.data.eras,
+                        events: result.data.events,
+                    });
+                    get()._recomputeWeekMap();
+                    return { success: true };
+                }
+                return { success: false, error: result.error };
+            },
+
+            clearAllData: () => {
+                set({
+                    birthDate: null,
+                    lifeExpectancy: DEFAULT_LIFE_EXPECTANCY,
+                    eras: [],
+                    events: [],
+                    weekMap: new Map(),
+                });
+            },
+
             // Computed getters
             getWeekData: (weekIndex) => {
                 const { birthDate, lifeExpectancy, weekMap } = get();
@@ -193,13 +232,27 @@ export const useLifeCalendarStore = create<LifeCalendarState>()(
                     }
                 }
 
-                // Process events
+                // Process events (handle both point-in-time and period events)
                 for (const event of events) {
-                    const weekIndex = getWeekIndex(birthDate, event.date);
-                    if (weekIndex >= 0 && weekIndex < totalWeeks) {
-                        const existing = newMap.get(weekIndex) ?? { eraIds: [], eventIds: [] };
-                        existing.eventIds.push(event.id);
-                        newMap.set(weekIndex, existing);
+                    if (event.endDate) {
+                        // Period event: spans multiple weeks
+                        const startIndex = Math.max(0, getWeekIndex(birthDate, event.date));
+                        const endIndex = Math.min(totalWeeks - 1, getWeekIndex(birthDate, event.endDate));
+                        for (let weekIndex = startIndex; weekIndex <= endIndex; weekIndex++) {
+                            const existing = newMap.get(weekIndex) ?? { eraIds: [], eventIds: [] };
+                            if (!existing.eventIds.includes(event.id)) {
+                                existing.eventIds.push(event.id);
+                            }
+                            newMap.set(weekIndex, existing);
+                        }
+                    } else {
+                        // Point-in-time event: single week
+                        const weekIndex = getWeekIndex(birthDate, event.date);
+                        if (weekIndex >= 0 && weekIndex < totalWeeks) {
+                            const existing = newMap.get(weekIndex) ?? { eraIds: [], eventIds: [] };
+                            existing.eventIds.push(event.id);
+                            newMap.set(weekIndex, existing);
+                        }
                     }
                 }
 

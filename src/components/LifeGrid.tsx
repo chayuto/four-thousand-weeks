@@ -5,19 +5,20 @@
  * Following research recommendations:
  * - Uses CSS Grid with 52 columns
  * - Implements event delegation (single listener on container)
- * - Pre-computes era lookup map for O(1) access
+ * - Pre-computes era and event lookup maps for O(1) access
  */
 
 import { useCallback, useMemo, type MouseEvent, type ReactElement } from 'react';
 import { WeekCell } from './WeekCell';
-import { useLifeCalendarStore, useEras, useBirthDate, useLifeExpectancy } from '@/store/lifeCalendarStore';
+import { useLifeCalendarStore, useEras, useEvents, useBirthDate, useLifeExpectancy } from '@/store/lifeCalendarStore';
 import { WEEKS_PER_YEAR } from '@/types';
-import type { LifeEra } from '@/types';
+import type { LifeEra, LifeEvent } from '@/types';
 
 export const LifeGrid = () => {
     const birthDate = useBirthDate();
     const lifeExpectancy = useLifeExpectancy();
     const eras = useEras();
+    const events = useEvents();
     const getWeekData = useLifeCalendarStore((state) => state.getWeekData);
     const setHoveredWeek = useLifeCalendarStore((state) => state.setHoveredWeek);
     const setSelectedWeek = useLifeCalendarStore((state) => state.setSelectedWeek);
@@ -30,6 +31,15 @@ export const LifeGrid = () => {
         }
         return map;
     }, [eras]);
+
+    // Pre-compute event lookup map once
+    const eventMap = useMemo(() => {
+        const map = new Map<string, LifeEvent>();
+        for (const event of events) {
+            map.set(event.id, event);
+        }
+        return map;
+    }, [events]);
 
     // Calculate total weeks
     const totalWeeks = lifeExpectancy * WEEKS_PER_YEAR;
@@ -69,12 +79,13 @@ export const LifeGrid = () => {
                     weekIndex={i}
                     weekData={weekData}
                     eras={eraMap}
+                    events={eventMap}
                 />
             );
         }
 
         return cells;
-    }, [birthDate, totalWeeks, getWeekData, eraMap]);
+    }, [birthDate, totalWeeks, getWeekData, eraMap, eventMap]);
 
     if (!birthDate) {
         return (

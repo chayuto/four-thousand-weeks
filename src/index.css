@@ -145,6 +145,15 @@ body {
   border-radius: 50%;
 }
 
+/* Period events get a subtle border instead of dot */
+.week-cell.has-period-event::after {
+  display: none;
+}
+
+.week-cell.has-period-event {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
 /* Era color overlays - using CSS custom properties for dynamic colors */
 .week-cell[data-era-colors] {
   /* Colors set via inline style */
