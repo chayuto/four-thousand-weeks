@@ -6,7 +6,7 @@ A **Life Calendar** (Memento Mori) visualization that displays your entire lifes
 
 ![Life Calendar Demo](https://via.placeholder.com/800x400?text=Life+Calendar+Preview)
 
-## 🎯 Concept
+## Concept
 
 This application visualizes the finite nature of human life to encourage mindful living. Inspired by the Stoic concept of "Memento Mori" (remember that you will die), it provides a stark visual representation of time passing.
 
@@ -14,7 +14,7 @@ This application visualizes the finite nature of human life to encourage mindful
 - **52 columns** (weeks per year)
 - **80 rows** (years of life)
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 This project follows the architectural recommendations from our [research document](./research/React%20+%20Vite%20+%20TypeScript%20Implementation%20Research.md):
 
@@ -28,30 +28,30 @@ This project follows the architectural recommendations from our [research docume
 | **Zod** | Runtime validation for data integrity |
 | **Tailwind CSS** | Utility-first CSS with performance focus |
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or pnpm
+- pnpm
 
 ### Installation
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 
 # Preview production build
-npm run preview
+pnpm preview
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -73,7 +73,7 @@ src/
 └── index.css           # Tailwind + CSS design system
 ```
 
-## ⚡ Performance Architecture
+## Performance Architecture
 
 This application renders **4,000+ interactive elements**. Key optimizations:
 
@@ -83,7 +83,7 @@ This application renders **4,000+ interactive elements**. Key optimizations:
 4. **Singleton Tooltip** - one tooltip component that moves, not 4000 instances
 5. **Pre-computed Week Map** - O(1) lookups for era/event data
 
-## 🖨️ Print Support
+## Print Support
 
 The calendar is designed to be printed as a physical artifact:
 
@@ -92,7 +92,7 @@ The calendar is designed to be printed as a physical artifact:
 - UI elements are hidden in print mode (`.no-print`)
 - Year rows won't break across pages (`break-inside: avoid`)
 
-## 📝 Data Model
+## Data Model
 
 ### Eras (Time Ranges)
 Overlapping life periods like "College", "Living in NYC", "First Job".
@@ -102,7 +102,7 @@ Specific moments like graduations, weddings, or milestones.
 
 Data is persisted to `localStorage` with automatic Date object hydration.
 
-## 🎨 Customization
+## Customization
 
 CSS variables in `src/index.css`:
 
@@ -120,12 +120,12 @@ CSS variables in `src/index.css`:
 }
 ```
 
-## 📚 Further Reading
+## Further Reading
 
 - [Original Research Document](./research/React%20+%20Vite%20+%20TypeScript%20Implementation%20Research.md)
 - [Wait But Why: Your Life in Weeks](https://waitbutwhy.com/2014/05/life-weeks.html)
 - [Oliver Burkeman: Four Thousand Weeks](https://www.oliverburkeman.com/fourthousandweeks)
 
-## 📄 License
+## License
 
 MIT

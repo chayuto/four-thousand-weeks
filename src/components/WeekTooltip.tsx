@@ -81,7 +81,7 @@ export const WeekTooltip = () => {
                 {/* Status */}
                 <div className="text-sm">
                     {weekData.isPast ? (
-                        <span className="text-[var(--color-text-muted)]">Lived ✓</span>
+                        <span className="text-[var(--color-text-muted)]">Lived</span>
                     ) : weekData.isCurrentWeek ? (
                         <span className="text-[var(--cell-current)]">Current week</span>
                     ) : (
@@ -111,7 +111,7 @@ export const WeekTooltip = () => {
                         <div className="text-xs text-[var(--color-text-muted)] mb-1">Events</div>
                         {weekEvents.map((event) => event && (
                             <div key={event.id} className="flex items-center gap-2 text-sm">
-                                <span>{event.icon ?? '📌'}</span>
+                                <span>•</span>
                                 <span>{event.title}</span>
                             </div>
                         ))}
