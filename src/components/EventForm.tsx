@@ -12,6 +12,7 @@ import type { LifeEvent } from '@/types';
 interface EventFormProps {
     event?: LifeEvent; // If provided, we're editing
     onClose?: () => void;
+    defaultDate?: Date; // Pre-fill date when creating from week selection
 }
 
 const DEFAULT_COLORS = [
@@ -25,13 +26,17 @@ const DEFAULT_COLORS = [
     '#ec4899', // pink
 ];
 
-export const EventForm = ({ event, onClose }: EventFormProps) => {
+export const EventForm = ({ event, onClose, defaultDate }: EventFormProps) => {
     const addEvent = useLifeCalendarStore((state) => state.addEvent);
     const updateEvent = useLifeCalendarStore((state) => state.updateEvent);
 
     const [title, setTitle] = useState(event?.title ?? '');
     const [date, setDate] = useState(
-        event?.date ? formatDateForInput(event.date) : ''
+        event?.date
+            ? formatDateForInput(event.date)
+            : defaultDate
+                ? formatDateForInput(defaultDate)
+                : ''
     );
     const [isPeriod, setIsPeriod] = useState(!!event?.endDate);
     const [endDate, setEndDate] = useState(

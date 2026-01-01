@@ -5,17 +5,39 @@
  * "Memento Mori" - Remember that you will die.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { BirthDateInput } from './components/BirthDateInput';
 import { LifeGrid } from './components/LifeGrid';
 import { WeekTooltip } from './components/WeekTooltip';
 import { EventPanel } from './components/EventPanel';
-import { useBirthDate } from './store/lifeCalendarStore';
+import { useBirthDate, useSelectedWeek, useLifeCalendarStore } from './store/lifeCalendarStore';
 
 function App() {
   const birthDate = useBirthDate();
+  const selectedWeekIndex = useSelectedWeek();
+  const getWeekData = useLifeCalendarStore((state) => state.getWeekData);
+  const setSelectedWeek = useLifeCalendarStore((state) => state.setSelectedWeek);
   const [isEventPanelOpen, setIsEventPanelOpen] = useState(false);
+  const [prefilledDate, setPrefilledDate] = useState<Date | undefined>(undefined);
+
+  // When a week is clicked (selectedWeekIndex changes to non-null), open EventPanel with that date
+  useEffect(() => {
+    if (selectedWeekIndex !== null) {
+      const weekData = getWeekData(selectedWeekIndex);
+      if (weekData) {
+        setPrefilledDate(weekData.startDate);
+        setIsEventPanelOpen(true);
+      }
+    }
+  }, [selectedWeekIndex, getWeekData]);
+
+  const handleCloseEventPanel = () => {
+    setIsEventPanelOpen(false);
+    setPrefilledDate(undefined);
+    // Clear selection when panel is closed
+    setSelectedWeek(null);
+  };
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
@@ -62,7 +84,8 @@ function App() {
       {/* Event Management Panel */}
       <EventPanel
         isOpen={isEventPanelOpen}
-        onClose={() => setIsEventPanelOpen(false)}
+        onClose={handleCloseEventPanel}
+        prefilledDate={prefilledDate}
       />
 
       {/* Footer */}

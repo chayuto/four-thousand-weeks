@@ -10,7 +10,7 @@
 
 import { useCallback, useMemo, type MouseEvent, type ReactElement } from 'react';
 import { WeekCell } from './WeekCell';
-import { useLifeCalendarStore, useEras, useEvents, useBirthDate, useLifeExpectancy } from '@/store/lifeCalendarStore';
+import { useLifeCalendarStore, useEras, useEvents, useBirthDate, useLifeExpectancy, useSelectedWeek } from '@/store/lifeCalendarStore';
 import { WEEKS_PER_YEAR } from '@/types';
 import type { LifeEra, LifeEvent } from '@/types';
 
@@ -22,6 +22,7 @@ export const LifeGrid = () => {
     const getWeekData = useLifeCalendarStore((state) => state.getWeekData);
     const setHoveredWeek = useLifeCalendarStore((state) => state.setHoveredWeek);
     const setSelectedWeek = useLifeCalendarStore((state) => state.setSelectedWeek);
+    const selectedWeekIndex = useSelectedWeek();
 
     // Pre-compute era lookup map once
     const eraMap = useMemo(() => {
@@ -80,12 +81,13 @@ export const LifeGrid = () => {
                     weekData={weekData}
                     eras={eraMap}
                     events={eventMap}
+                    isSelected={i === selectedWeekIndex}
                 />
             );
         }
 
         return cells;
-    }, [birthDate, totalWeeks, getWeekData, eraMap, eventMap]);
+    }, [birthDate, totalWeeks, getWeekData, eraMap, eventMap, selectedWeekIndex]);
 
     if (!birthDate) {
         return (

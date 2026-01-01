@@ -16,6 +16,7 @@ interface WeekCellProps {
     weekData: WeekData | null;
     eras: Map<string, LifeEra>;
     events: Map<string, LifeEvent>;
+    isSelected: boolean;
 }
 
 /**
@@ -40,8 +41,12 @@ const generateEraGradient = (eraColors: string[]): string => {
 /**
  * Determines the base class for the week cell based on its state.
  */
-const getCellClassName = (weekData: WeekData | null, hasPeriodEvent: boolean): string => {
+const getCellClassName = (weekData: WeekData | null, hasPeriodEvent: boolean, isSelected: boolean): string => {
     const classes = ['week-cell'];
+
+    if (isSelected) {
+        classes.push('selected');
+    }
 
     if (!weekData) {
         classes.push('future');
@@ -66,7 +71,7 @@ const getCellClassName = (weekData: WeekData | null, hasPeriodEvent: boolean): s
     return classes.join(' ');
 };
 
-const WeekCellComponent = ({ weekIndex, weekData, eras, events }: WeekCellProps) => {
+const WeekCellComponent = ({ weekIndex, weekData, eras, events, isSelected }: WeekCellProps) => {
     // Get era colors for this week
     const eraColors: string[] = [];
     if (weekData?.activeEras) {
@@ -106,7 +111,7 @@ const WeekCellComponent = ({ weekIndex, weekData, eras, events }: WeekCellProps)
 
     return (
         <div
-            className={getCellClassName(weekData, hasPeriodEvent)}
+            className={getCellClassName(weekData, hasPeriodEvent, isSelected)}
             data-week-index={weekIndex}
             data-year={weekData?.year}
             data-week-of-year={weekData?.weekOfYear}
@@ -129,6 +134,7 @@ const WeekCellComponent = ({ weekIndex, weekData, eras, events }: WeekCellProps)
 export const WeekCell = memo(WeekCellComponent, (prevProps, nextProps) => {
     // Deep comparison for performance
     if (prevProps.weekIndex !== nextProps.weekIndex) return false;
+    if (prevProps.isSelected !== nextProps.isSelected) return false;
     if (prevProps.weekData?.isPast !== nextProps.weekData?.isPast) return false;
     if (prevProps.weekData?.isCurrentWeek !== nextProps.weekData?.isCurrentWeek) return false;
     if (prevProps.weekData?.activeEras.length !== nextProps.weekData?.activeEras.length) return false;

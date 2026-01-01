@@ -115,6 +115,18 @@ body {
   z-index: 10;
 }
 
+.week-cell.selected {
+  transform: scale(1.3);
+  box-shadow: 0 0 0 2px var(--cell-current);
+  z-index: 5;
+}
+
+.week-cell.selected:hover {
+  transform: scale(1.5);
+  box-shadow: 0 0 0 2px var(--cell-current);
+  z-index: 10;
+}
+
 /* Cell states */
 .week-cell.past {
   background-color: var(--cell-past);
@@ -154,10 +166,7 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
-/* Era color overlays - using CSS custom properties for dynamic colors */
-.week-cell[data-era-colors] {
-  /* Colors set via inline style */
-}
+/* Era color overlays are set via inline style on the element */
 
 /* Pulse animation for current week */
 @keyframes pulse {

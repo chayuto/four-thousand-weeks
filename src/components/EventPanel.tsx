@@ -5,7 +5,7 @@
  * Includes EventForm, EventList, and Import/Export buttons.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { EventForm } from './EventForm';
 import { EventList } from './EventList';
 import { useLifeCalendarStore, useEvents } from '@/store/lifeCalendarStore';
@@ -14,9 +14,10 @@ import { readFileAsText } from '@/lib/importExport';
 interface EventPanelProps {
     isOpen: boolean;
     onClose: () => void;
+    prefilledDate?: Date;
 }
 
-export const EventPanel = ({ isOpen, onClose }: EventPanelProps) => {
+export const EventPanel = ({ isOpen, onClose, prefilledDate }: EventPanelProps) => {
     const events = useEvents();
     const exportData = useLifeCalendarStore((state) => state.exportData);
     const importData = useLifeCalendarStore((state) => state.importData);
@@ -24,6 +25,13 @@ export const EventPanel = ({ isOpen, onClose }: EventPanelProps) => {
     const [showForm, setShowForm] = useState(false);
     const [importError, setImportError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Auto-show form when prefilledDate is provided (from week click)
+    useEffect(() => {
+        if (prefilledDate) {
+            setShowForm(true);
+        }
+    }, [prefilledDate]);
 
     const handleImportClick = () => {
         fileInputRef.current?.click();
@@ -80,7 +88,10 @@ export const EventPanel = ({ isOpen, onClose }: EventPanelProps) => {
                         {showForm ? (
                             <div>
                                 <h3 className="font-medium mb-3">Add New Event</h3>
-                                <EventForm onClose={() => setShowForm(false)} />
+                                <EventForm
+                                    onClose={() => setShowForm(false)}
+                                    defaultDate={prefilledDate}
+                                />
                             </div>
                         ) : (
                             <button
