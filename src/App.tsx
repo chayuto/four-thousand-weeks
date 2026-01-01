@@ -5,39 +5,19 @@
  * "Memento Mori" - Remember that you will die.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header } from './components/Header';
 import { BirthDateInput } from './components/BirthDateInput';
 import { LifeGrid } from './components/LifeGrid';
 import { WeekTooltip } from './components/WeekTooltip';
 import { EventPanel } from './components/EventPanel';
-import { useBirthDate, useSelectedWeek, useLifeCalendarStore } from './store/lifeCalendarStore';
+import { useBirthDate, useEvents } from './store/lifeCalendarStore';
 
 function App() {
   const birthDate = useBirthDate();
-  const selectedWeekIndex = useSelectedWeek();
-  const getWeekData = useLifeCalendarStore((state) => state.getWeekData);
-  const setSelectedWeek = useLifeCalendarStore((state) => state.setSelectedWeek);
+  const events = useEvents();
   const [isEventPanelOpen, setIsEventPanelOpen] = useState(false);
-  const [prefilledDate, setPrefilledDate] = useState<Date | undefined>(undefined);
-
-  // When a week is clicked (selectedWeekIndex changes to non-null), open EventPanel with that date
-  useEffect(() => {
-    if (selectedWeekIndex !== null) {
-      const weekData = getWeekData(selectedWeekIndex);
-      if (weekData) {
-        setPrefilledDate(weekData.startDate);
-        setIsEventPanelOpen(true);
-      }
-    }
-  }, [selectedWeekIndex, getWeekData]);
-
-  const handleCloseEventPanel = () => {
-    setIsEventPanelOpen(false);
-    setPrefilledDate(undefined);
-    // Clear selection when panel is closed
-    setSelectedWeek(null);
-  };
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
@@ -72,6 +52,22 @@ function App() {
               </button>
             </div>
 
+            {/* Empty state hint - show when no events */}
+            {events.length === 0 && !hintDismissed && (
+              <div className="mb-4 p-3 rounded-lg bg-[var(--cell-current)]/10 border border-[var(--cell-current)]/20 flex items-center justify-between gap-4 no-print">
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  💡 <strong>Tip:</strong> Click any week to add your first life event
+                </p>
+                <button
+                  onClick={() => setHintDismissed(true)}
+                  className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-sm"
+                  aria-label="Dismiss hint"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* The Grid */}
             <LifeGrid />
           </>
@@ -81,11 +77,10 @@ function App() {
       {/* Singleton Tooltip */}
       <WeekTooltip />
 
-      {/* Event Management Panel */}
+      {/* Event Management Panel - for bulk event management */}
       <EventPanel
         isOpen={isEventPanelOpen}
-        onClose={handleCloseEventPanel}
-        prefilledDate={prefilledDate}
+        onClose={() => setIsEventPanelOpen(false)}
       />
 
       {/* Footer */}

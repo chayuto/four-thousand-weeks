@@ -122,7 +122,7 @@ const WeekCellComponent = ({ weekIndex, weekData, eras, events, isSelected }: We
                     ? `Week ${weekData.weekOfYear + 1} of year ${weekData.year + 1}${weekData.isCurrentWeek ? ' (current week)' : ''}`
                     : `Week ${weekIndex}`
             }
-            tabIndex={-1}
+            tabIndex={0}
         />
     );
 };

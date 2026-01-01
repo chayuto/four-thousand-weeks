@@ -5,7 +5,7 @@
  * Includes EventForm, EventList, and Import/Export buttons.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { EventForm } from './EventForm';
 import { EventList } from './EventList';
 import { useLifeCalendarStore, useEvents } from '@/store/lifeCalendarStore';
@@ -22,16 +22,9 @@ export const EventPanel = ({ isOpen, onClose, prefilledDate }: EventPanelProps) 
     const exportData = useLifeCalendarStore((state) => state.exportData);
     const importData = useLifeCalendarStore((state) => state.importData);
 
-    const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useState(!!prefilledDate);
     const [importError, setImportError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Auto-show form when prefilledDate is provided (from week click)
-    useEffect(() => {
-        if (prefilledDate) {
-            setShowForm(true);
-        }
-    }, [prefilledDate]);
 
     const handleImportClick = () => {
         fileInputRef.current?.click();

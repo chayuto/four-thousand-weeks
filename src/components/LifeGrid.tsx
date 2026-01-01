@@ -2,14 +2,12 @@
  * LifeGrid Component
  * 
  * The main grid container that renders all 4,000+ week cells.
- * Following research recommendations:
- * - Uses CSS Grid with 52 columns
- * - Implements event delegation (single listener on container)
- * - Pre-computes era and event lookup maps for O(1) access
+ * Renders by year rows with inline expansion for selected weeks.
  */
 
-import { useCallback, useMemo, type MouseEvent, type ReactElement } from 'react';
+import { useCallback, useMemo, useRef, useEffect, type MouseEvent, type KeyboardEvent, type ReactElement } from 'react';
 import { WeekCell } from './WeekCell';
+import { WeekDetailRow } from './WeekDetailRow';
 import { useLifeCalendarStore, useEras, useEvents, useBirthDate, useLifeExpectancy, useSelectedWeek } from '@/store/lifeCalendarStore';
 import { WEEKS_PER_YEAR } from '@/types';
 import type { LifeEra, LifeEvent } from '@/types';
@@ -23,6 +21,11 @@ export const LifeGrid = () => {
     const setHoveredWeek = useLifeCalendarStore((state) => state.setHoveredWeek);
     const setSelectedWeek = useLifeCalendarStore((state) => state.setSelectedWeek);
     const selectedWeekIndex = useSelectedWeek();
+
+    // Calculate which year row the selected week is in
+    const selectedYear = selectedWeekIndex !== null
+        ? Math.floor(selectedWeekIndex / WEEKS_PER_YEAR)
+        : null;
 
     // Pre-compute era lookup map once
     const eraMap = useMemo(() => {
@@ -42,9 +45,6 @@ export const LifeGrid = () => {
         return map;
     }, [events]);
 
-    // Calculate total weeks
-    const totalWeeks = lifeExpectancy * WEEKS_PER_YEAR;
-
     // Event delegation handlers (singleton pattern)
     const handleMouseOver = useCallback((event: MouseEvent<HTMLDivElement>) => {
         const target = event.target as HTMLElement;
@@ -62,32 +62,143 @@ export const LifeGrid = () => {
         const target = event.target as HTMLElement;
         const weekIndex = target.getAttribute('data-week-index');
         if (weekIndex !== null) {
-            setSelectedWeek(parseInt(weekIndex, 10));
+            const clickedIndex = parseInt(weekIndex, 10);
+            // Toggle selection: click same week to close, different week to switch
+            if (clickedIndex === selectedWeekIndex) {
+                setSelectedWeek(null);
+            } else {
+                setSelectedWeek(clickedIndex);
+            }
         }
+    }, [setSelectedWeek, selectedWeekIndex]);
+
+    const handleCloseDetail = useCallback(() => {
+        setSelectedWeek(null);
     }, [setSelectedWeek]);
 
-    // Generate week cells
-    const weekCells = useMemo(() => {
-        if (!birthDate) return null;
+    // Ref for grid container
+    const gridRef = useRef<HTMLDivElement>(null);
 
-        const cells: ReactElement[] = [];
+    // Auto-scroll to current week on mount
+    useEffect(() => {
+        if (birthDate && gridRef.current) {
+            // Small delay to ensure grid is rendered
+            const timer = setTimeout(() => {
+                const currentWeekCell = gridRef.current?.querySelector('.week-cell.current');
+                if (currentWeekCell) {
+                    currentWeekCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [birthDate]);
 
-        for (let i = 0; i < totalWeeks; i++) {
-            const weekData = getWeekData(i);
-            cells.push(
-                <WeekCell
-                    key={i}
-                    weekIndex={i}
-                    weekData={weekData}
-                    eras={eraMap}
-                    events={eventMap}
-                    isSelected={i === selectedWeekIndex}
-                />
-            );
+    // Keyboard navigation handler
+    const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+        const target = event.target as HTMLElement;
+        const weekIndex = target.getAttribute('data-week-index');
+
+        if (weekIndex === null) return;
+
+        const currentIndex = parseInt(weekIndex, 10);
+        let nextIndex: number | null = null;
+        const totalWeeks = lifeExpectancy * WEEKS_PER_YEAR;
+
+        switch (event.key) {
+            case 'ArrowRight':
+                nextIndex = Math.min(currentIndex + 1, totalWeeks - 1);
+                event.preventDefault();
+                break;
+            case 'ArrowLeft':
+                nextIndex = Math.max(currentIndex - 1, 0);
+                event.preventDefault();
+                break;
+            case 'ArrowDown':
+                nextIndex = Math.min(currentIndex + WEEKS_PER_YEAR, totalWeeks - 1);
+                event.preventDefault();
+                break;
+            case 'ArrowUp':
+                nextIndex = Math.max(currentIndex - WEEKS_PER_YEAR, 0);
+                event.preventDefault();
+                break;
+            case 'Enter':
+            case ' ':
+                // Toggle selection on Enter/Space
+                if (currentIndex === selectedWeekIndex) {
+                    setSelectedWeek(null);
+                } else {
+                    setSelectedWeek(currentIndex);
+                }
+                event.preventDefault();
+                return;
+            case 'Escape':
+                setSelectedWeek(null);
+                event.preventDefault();
+                return;
         }
 
-        return cells;
-    }, [birthDate, totalWeeks, getWeekData, eraMap, eventMap, selectedWeekIndex]);
+        // Focus the next cell
+        if (nextIndex !== null && gridRef.current) {
+            const nextCell = gridRef.current.querySelector(`[data-week-index="${nextIndex}"]`) as HTMLElement;
+            if (nextCell) {
+                nextCell.focus();
+            }
+        }
+    }, [lifeExpectancy, selectedWeekIndex, setSelectedWeek]);
+
+    // Generate week cells organized by year rows with potential expansion
+    const gridContent = useMemo(() => {
+        if (!birthDate) return null;
+
+        const content: ReactElement[] = [];
+
+        for (let year = 0; year < lifeExpectancy; year++) {
+            // Add year label at start of each row (show label at decade intervals)
+            if (year % 10 === 0) {
+                content.push(
+                    <div key={`label-${year}`} className="year-label">
+                        {year}
+                    </div>
+                );
+            } else {
+                content.push(
+                    <div key={`label-${year}`} className="year-label-empty" />
+                );
+            }
+
+            // Render all 52 weeks for this year
+            for (let weekOfYear = 0; weekOfYear < WEEKS_PER_YEAR; weekOfYear++) {
+                const weekIndex = year * WEEKS_PER_YEAR + weekOfYear;
+                const weekData = getWeekData(weekIndex);
+                content.push(
+                    <WeekCell
+                        key={weekIndex}
+                        weekIndex={weekIndex}
+                        weekData={weekData}
+                        eras={eraMap}
+                        events={eventMap}
+                        isSelected={weekIndex === selectedWeekIndex}
+                    />
+                );
+            }
+
+            // If this year contains the selected week, insert expansion row after it
+            if (selectedYear === year && selectedWeekIndex !== null) {
+                const selectedWeekData = getWeekData(selectedWeekIndex);
+                if (selectedWeekData) {
+                    content.push(
+                        <WeekDetailRow
+                            key={`detail-${year}`}
+                            weekData={selectedWeekData}
+                            onClose={handleCloseDetail}
+                        />
+                    );
+                }
+            }
+        }
+
+        return content;
+    }, [birthDate, lifeExpectancy, getWeekData, eraMap, eventMap, selectedWeekIndex, selectedYear, handleCloseDetail]);
 
     if (!birthDate) {
         return (
@@ -104,14 +215,17 @@ export const LifeGrid = () => {
 
     return (
         <div
+            ref={gridRef}
             className="life-grid"
             role="grid"
-            aria-label={`Life calendar grid showing ${totalWeeks} weeks`}
+            aria-label={`Life calendar grid showing ${lifeExpectancy * WEEKS_PER_YEAR} weeks`}
             onMouseOver={handleMouseOver}
             onMouseLeave={handleMouseLeave}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
         >
-            {weekCells}
+            {gridContent}
         </div>
     );
 };
+
