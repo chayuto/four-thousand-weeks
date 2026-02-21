@@ -1,0 +1,175 @@
+# Four Thousand Weeks - Life Calendar (Full Documentation)
+
+> A Memento Mori life calendar that visualizes a human lifespan as a grid of approximately 4,000 weeks.
+
+Inspired by Oliver Burkeman's book "Four Thousand Weeks: Time Management for Mortals" and the Stoic practice of Memento Mori — "remember that you will die." The concept was also popularized by Tim Urban's "Your Life in Weeks" blog post on Wait But Why.
+
+Live App: https://four-thousand-weeks.chayuto.com/
+Source Code: https://github.com/chayuto/four-thousand-weeks
+
+## Overview
+
+This is a single-page web application that renders a human lifespan (80 years) as a visual grid of weeks. Each row represents one year, and each column one of the 52 weeks in that year, producing a grid of approximately 4,160 cells. The grid provides an at-a-glance view of how much time has passed and how much remains, encouraging mindful living.
+
+All data is stored locally in the user's browser using localStorage. There is no backend server, no user accounts, and no analytics or tracking. The application is fully client-side and privacy-first.
+
+## Core Features
+
+### Life Grid Visualization
+- 52 columns (weeks per year) × 80 rows (years of life) = ~4,160 interactive cells
+- Three cell states: past (lived), current (this week, pulsing animation), future
+- Hover any cell to see a tooltip with the date range and year/week number
+- Click any cell to open an inline detail panel for adding events
+
+### Life Events
+- Point-in-time events: mark specific weeks with labels (e.g., "Graduated college", "Got married")
+- Events are displayed as dots within their corresponding week cells
+- Events include a title, date, optional color, and category
+
+### Life Eras
+- Time-range overlays: define spans of life with categories
+- Six categories: Work, Education, Location, Relationship, Health, Other
+- Each category has a distinct color for visual differentiation
+- Eras can overlap (e.g., "College" and "Living in Boston" can cover the same period)
+- Era colors are applied as background overlays on week cells
+
+### Statistics (Header)
+- Weeks lived (total count)
+- Weeks remaining (based on 80-year life expectancy)
+- Percentage of life completed
+
+### Data Management
+- Import/Export: Save and load life data as JSON files
+- All persistence via browser localStorage
+- Automatic Date object hydration on load
+
+### Print Support
+- Optimized print stylesheet for physical display
+- Background colors preserved with print-color-adjust
+- UI elements hidden in print mode
+- Year rows respect page breaks
+
+### Accessibility
+- Keyboard navigation for week cells
+- Focus-visible outlines
+- ARIA labels on interactive elements
+- Respects prefers-color-scheme for dark/light mode
+
+## Technical Architecture
+
+### Tech Stack
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 19.x | UI library with concurrent features |
+| TypeScript | 5.9.x | Strict type safety (noUncheckedIndexedAccess) |
+| Vite | 7.x | Build tool with SWC (Rust-based compilation) |
+| Tailwind CSS | 4.x | Utility-first CSS framework |
+| Zustand | 5.x | Lightweight state management |
+| date-fns | 4.x | Tree-shakeable date arithmetic |
+| Zod | 3.x | Runtime data validation |
+
+### Performance Optimizations
+The app renders 4,000+ interactive DOM elements, requiring careful optimization:
+
+1. **Native CSS Grid** with `contain: strict` for layout containment
+2. **React.memo** on WeekCell prevents unnecessary re-renders
+3. **Event Delegation** — single click/hover listener on the grid container, not on each cell
+4. **Singleton Tooltip** — one tooltip instance that repositions, not 4,000 instances
+5. **Pre-computed Week Map** — O(1) lookups for era/event associations per week
+
+### Project Structure
+```
+src/
+├── components/
+│   ├── Header.tsx          — App header with stats and birthday editor
+│   ├── BirthDateInput.tsx  — Initial birthday entry form
+│   ├── LifeGrid.tsx        — Main grid with event delegation
+│   ├── WeekCell.tsx        — Individual cell (React.memo optimized)
+│   ├── WeekTooltip.tsx     — Singleton hover tooltip
+│   ├── WeekDetailRow.tsx   — Inline detail panel (click-to-expand)
+│   ├── EventPanel.tsx      — Bulk event management modal
+│   ├── EventForm.tsx       — Event creation/editing form
+│   └── EventList.tsx       — Event listing within panel
+├── lib/
+│   ├── dateUtils.ts        — date-fns wrapper for week/year calculations
+│   ├── schemas.ts          — Zod schemas for data validation
+│   └── importExport.ts     — JSON serialization/deserialization
+├── store/
+│   └── lifeCalendarStore.ts — Zustand store with localStorage persistence
+├── types/
+│   └── index.ts            — TypeScript type definitions
+├── App.tsx                  — Root component
+├── main.tsx                 — React entry point
+└── index.css                — Tailwind imports + CSS design system
+```
+
+### Data Model
+
+#### WeekData
+Each cell in the grid is computed from:
+- Year index (0–79) and week index (0–51)
+- Start date and end date of the week
+- Status: past, current, or future
+- Associated events and eras (matched by date overlap)
+
+#### LifeEvent
+```typescript
+{
+  id: string;
+  title: string;
+  date: Date;
+  color?: string;
+  category?: 'work' | 'education' | 'location' | 'relationship' | 'health' | 'other';
+}
+```
+
+#### LifeEra
+```typescript
+{
+  id: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  color: string;
+  category: 'work' | 'education' | 'location' | 'relationship' | 'health' | 'other';
+}
+```
+
+### Design System
+CSS custom properties for theming:
+
+**Dark Mode (default):**
+- Background: #0a0a0a
+- Surface: #141414
+- Past weeks: #3f3f46
+- Current week: #fbbf24 (amber)
+- Future weeks: #27272a
+
+**Light Mode (prefers-color-scheme: light):**
+- Background: #ffffff
+- Surface: #f9fafb
+- Past weeks: #6b7280
+- Current week: #f59e0b
+- Future weeks: #e5e7eb
+
+**Era Category Colors:**
+- Work: #3b82f6 (blue)
+- Education: #8b5cf6 (purple)
+- Location: #10b981 (green)
+- Relationship: #f43f5e (rose)
+- Health: #06b6d4 (cyan)
+- Other: #6b7280 (gray)
+
+## Deployment
+- Hosted on GitHub Pages
+- Custom domain: four-thousand-weeks.chayuto.com
+- CI/CD via GitHub Actions (lint, typecheck, build, deploy)
+- Build tool: Vite (output to dist/)
+
+## Further Reading
+- Oliver Burkeman: "Four Thousand Weeks: Time Management for Mortals"
+- Tim Urban: "Your Life in Weeks" (Wait But Why)
+- Stoic philosophy: Memento Mori
+
+## License
+MIT License

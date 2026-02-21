@@ -1,0 +1,33 @@
+# Four Thousand Weeks - Life Calendar
+
+> A Memento Mori life calendar that visualizes a human lifespan as a grid of approximately 4,000 weeks.
+
+Inspired by Oliver Burkeman's book "Four Thousand Weeks: Time Management for Mortals" and the Stoic practice of Memento Mori — "remember that you will die."
+
+## What It Does
+
+- Displays an 80-year lifespan as an interactive 52×80 grid (52 weeks per year, 80 years)
+- Each cell represents one week of life
+- Color-coded cells show weeks lived, the current week, and future weeks
+- Users can add life events and eras (education, work, relationships, etc.) to annotate their timeline
+- Fully client-side — all data stays in the browser via localStorage (no server, no tracking)
+
+## Key Features
+
+- Interactive week grid with hover tooltips and click-to-add events
+- Life eras with color coding (work, education, location, relationship, health)
+- Point-in-time life events with custom labels
+- Statistics: weeks lived, weeks remaining, percentage of life
+- Dark and light mode (follows system preference)
+- Print-optimized layout for physical display
+- Data import/export as JSON
+
+## Tech Stack
+
+React 19, TypeScript, Vite, Tailwind CSS, Zustand (state), date-fns (dates), Zod (validation)
+
+## Links
+
+- Live App: https://four-thousand-weeks.chayuto.com/
+- Source Code: https://github.com/chayuto/four-thousand-weeks
+- Full Documentation for LLMs: https://four-thousand-weeks.chayuto.com/llms-full.txt
