@@ -56,7 +56,7 @@ export const importCalendarData = (json: string): ImportResult => {
 
         if (!result.success) {
             // Format Zod errors into readable message
-            const errors = result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`);
+            const errors = result.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`);
             return {
                 success: false,
                 error: `Validation failed:\n${errors.join('\n')}`,
